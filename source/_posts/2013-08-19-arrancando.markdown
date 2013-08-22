@@ -3,7 +3,7 @@ layout: post
 title: "Arrancando"
 date: 2013-08-19 21:59
 comments: true
-categories: 
+categories: lo-c-tutto
 author: mgarciaisaia
 ---
 

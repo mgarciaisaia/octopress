@@ -3,7 +3,7 @@ layout: post
 title: "Variables"
 date: 2013-08-20 01:21
 comments: true
-categories: 
+categories: lo-c-tutto
 author: mgarciaisaia
 ---
 
