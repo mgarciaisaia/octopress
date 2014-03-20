@@ -10,7 +10,7 @@ categories: extras
 **Disclaimer**: nunca implementé inotify, por lo que este post puede ser incompleto, incorrecto, o cualquier otro "in" que se te ocurra. Su espíritu es simplemente poder referenciar acá cada vez que surja un inconveniente con la herramienta, para no repetir lo que escribo siempre, y para cada vez dar una mejor respuesta. Todo aporte será más que bienvenido.
 {% endblockquote %}
 
-El mundo real apesta. Existe el habmbre, la capa de ozono se debilita, y el software obra de maneras misteriosas.
+El mundo real apesta. Existe el hambre, la capa de ozono se debilita, y el software obra de maneras misteriosas.
 
 `inotify` es una API de Linux que nos permite monitorear cambios en un archivo o directorio. En criollo, es un _duende_ al que le pedimos que levante la mano cuando ocurre algún evento que a nosotros nos interese, como la creación de un archivo en un directorio, la eliminación de un archivo o una escritura.<!--more-->
 
