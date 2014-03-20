@@ -1,0 +1,43 @@
+---
+layout: post
+title: "inotify"
+date: 2013-12-30 02:09
+comments: true
+categories: extras
+---
+
+{% blockquote %}
+**Disclaimer**: nunca implementé inotify, por lo que este post puede ser incompleto, incorrecto, o cualquier otro "in" que se te ocurra. Su espíritu es simplemente poder referenciar acá cada vez que surja un inconveniente con la herramienta, para no repetir lo que escribo siempre, y para cada vez dar una mejor respuesta. Todo aporte será más que bienvenido.
+{% endblockquote %}
+
+El mundo real apesta. Existe el habmbre, la capa de ozono se debilita, y el software obra de maneras misteriosas.
+
+`inotify` es una API de Linux que nos permite monitorear cambios en un archivo o directorio. En criollo, es un _duende_ al que le pedimos que levante la mano cuando ocurre algún evento que a nosotros nos interese, como la creación de un archivo en un directorio, la eliminación de un archivo o una escritura.<!--more-->
+
+Como es funcionalidad que provee el kernel, claramente está bien implementada: nada de tener al duende haciendo `ls` cada medio segundo para que avise al encontrar diferencias entre los últimos dos `ls`, sino que existe un modelo de eventos, y nosotros podemos especificar aquellos que nos interesa que se nos notifiquen (de ahí el 90% del nombre, je).
+
+El otro 10% es la i. `inotify` es funcionalidad que provee el kernel, por lo que trabaja al nivel al que el kernel conoce a los archivos, el File Control Block: los inodos. Al atender las diferentes llamadas al sistema (syscalls), el kernel dispara también las notificaciones correspondientes.
+
+Los eventos por los que podemos ser notificados están explicados en el man:
+
+    IN_ACCESS         File was accessed (read) (*).
+    IN_ATTRIB         Metadata changed, e.g., permissions, timestamps, extended attributes,
+                        link count (since Linux 2.6.25), UID, GID, etc. (*).
+    IN_CLOSE_WRITE    File opened for writing was closed (*).
+    IN_CLOSE_NOWRITE  File not opened for writing was closed (*).
+    IN_CREATE         File/directory created in watched directory (*).
+    IN_DELETE         File/directory deleted from watched directory (*).
+    IN_DELETE_SELF    Watched file/directory was itself deleted.
+    IN_MODIFY         File was modified (*).
+    IN_MOVE_SELF      Watched file/directory was itself moved.
+    IN_MOVED_FROM     File moved out of watched directory (*).
+    IN_MOVED_TO       File moved into watched directory (*).
+    IN_OPEN           File was opened (*).
+
+El problema ocurre con el mundo real. Dado que en ningún lugar está definido el contrato de cómo un programa tiene que implementar sus funcionalidades (por comunes que sean, como la actualización de un archivo), cada aplicación en particular puede implementar un conjunto de llamadas al sistema distinto para hacerlo. Si a esto sumamos la antiguedad y diversidad de orígenes de los editores de texto que se usan en Linux (algunos datan de los 70, pensados para usar en mainframes, mientras que otros son más recientes y apuntan a optimizar acceso a disco, o uso de memoria, o tiempo de respuesta), el panorama es realmente complejo: algunos editores de texto simplemente actualizarán los bloques de datos que hayan cambiado, mientras que otros optarán por enfoques más extraños.
+
+Un caso conocido es el de `nano`. Al grabar un archivo pequeño (archivos menores a 1 bloque - 4kb), `nano` optará por vaciar el archivo (truncarlo a 0 bytes) y luego grabar su contenido, por lo que `inotify` disparará dos eventos: `IN_MODIFIY` ("el archivo fue vaciado"), y luego otro `IN_MODIFY` ("se escribió el contenido del archivo").
+
+`vim`, por otro lado, mantiene un archivo de backup mientras vamos trabajando, para ahorrarnos algún dolor de cabeza si se nos llegara a apagar mal la máquina. Ahora, como ya mantiene ese archivo de backup, a `vim` le es más facil, cuando le pedimos grabar un archivo, reemplazar el archivo que existía por el backup actualizado, y listo. El resultado de esto es un set de llamadas al sistema bastante distinto al de `nano`: primero elimina el archivo original, y luego renombra el backup para que ocupe la ruta en que se encontraba el original. El problema con esto no sólo es que no hay eventos `IN_MODIFY`, sino que, como dijimos, `inotify` conoce inodos: el archivo del backup, por más que pase a llamarse igual que el original, es un inodo distinto, por lo que `inotify` dejará de detectar eventos sobre el archivo que se encuentra en el path que habíamos especificado.
+
+"Solucionar" estos problemas requiere tener en cuenta el comportamiento de cada editor y reaccionar de manera acorde cuando se detectan los eventos.
