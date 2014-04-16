@@ -14,9 +14,10 @@ echo "¡Hola, mundo!"
 
 Llamamos `mi_script` a este archivo.
 
-Esa línea mágica es la responsable de que podamos correr un script ejecutando `./mi_script` en la consola.<!--more--> Como dijimos en [el primer post](tutorial-c/blog/2013/08/19/arrancando), para ejecutar un programa en UNIX tenemos que tipear su ruta completa en la consola:
+Esa línea mágica es la responsable de que podamos correr un script ejecutando `./mi_script` en la consola.<!--more--> Como dijimos en [el primer post](tutorial-c/blog/2013/08/19/arrancando), para ejecutar un programa en UNIX, el programa tiene que tener permisos de ejecución[^4], y luego tenemos que tipear su ruta completa en la consola:
 
 {% codeblock lang:bash %}
+$ chmod +x mi_script
 $ ./mi_script
 ¡Hola, mundo!
 {% endcodeblock %}
@@ -135,9 +136,10 @@ Creo que no queda mucho más para agregar. _Espero que mis respuestas os haya il
 
 **EDIT:** Recordé que **sí** había algo más para agregar.
 
-Muchas veces ví que podía escribir un script sin ponerle un shebang, y que de todos modos funcionaba. ¿Por qué? Bueno, porque de algún modo se defaultea. En [Stackoverflow](http://stackoverflow.com/a/9945113/641451) dicen que se ejecuta con la misma shell que estás usando en ese momento, pero esto no es comportamiento estándar: la documentación de la syscall [`execve`](http://linux.die.net/man/2/execve) dice que un script **tiene que** que comenzar con un shebang válido[^3]. Conviene no dar nada por sentado y especificar el intérprete que queremos usar, asegurándonos así la compatibilidad y buen funcionamiento.
+Muchas veces ví que podía escribir un script sin ponerle un shebang, y que de todos modos funcionaba. ¿Por qué? Bueno, porque de algún modo se defaultea. En [Stackoverflow](http://stackoverflow.com/a/9945113/641451) dicen que se ejecuta con la misma shell que estás usando en ese momento, pero esto no es comportamiento estándar: la documentación de la syscall [`execve`](http://linux.die.net/man/2/execve) dice que un script **tiene que** comenzar con un shebang válido[^3]. Conviene no dar nada por sentado y especificar el intérprete que queremos usar, asegurándonos así la compatibilidad y buen funcionamiento.
 
 [0]: http://en.wikipedia.org/wiki/Shebang_(Unix)
 [^1]: El caracter `#` en inglés se llama "hash" (y supongo que se lo llamará, también, "sha"), y el `!` es el "bang".
 [^2]: _trivial_ es un decir. Ejecutar un programa no tiene nada de trivial, pero digamos que _la idea de cómo ejecutarlo_ es relativamente sencilla, al menos respecto a interpretar un script.
-[^3]: y abajo de todo tiene un programa `myecho` _MUUUUUUUY_ similar a nuestro `interprete.c` :)
+[^3]: Y, abajo de todo, en la documentación, muestra el código de un programa llamado `myecho` _MUUUUUUUY_ similar a nuestro `interprete.c` :)
+[^4]: ¡Gracias, Victor, por la corrección!
