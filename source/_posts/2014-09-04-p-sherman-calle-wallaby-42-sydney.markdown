@@ -9,7 +9,7 @@ categories:
 {% blockquote %}
 Con algo de suerte, este será el primero de una serie de al menos 3 posts hablando sobre la gestión de la memoria en C. Sólo parece no aportar tanto, pero probablemente entre los 3 den un mensaje más o menos copado. Stay tuned :)
 {% endblockquote %}
-Una de las complejidades más importantes asociadas a la programación en C es la gestión y el uso de la memoria.
+Una de las complejidades más importantes asociadas a la programación en C es la gestión y el uso de la memoria.<!--more-->
 
 Para un programa C, la memoria de la computadora es poco más que un gran vector (_array_) de bytes consecutivos. Todos y cada uno de estos bytes tienen una dirección: un número que permite al programa identificar a cada byte unequívocamente. Las direcciones arrancan (como todo en C) por la dirección 0. Y, como suelen representarse en hexa, vamos a decir que el primer byte de memoria es el de la dirección `0x0`.
 
