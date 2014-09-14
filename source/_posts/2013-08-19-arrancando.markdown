@@ -52,7 +52,7 @@ Ejecutamos el programa `/bin/ps` con el parámetro `--version`. `ps` nos contest
 
 Bueno, sí, es cierto. No muestra nada porque no le pedimos que muestre nada: nuestro programa sólo devuelve un 0, y nuestra consola sólo ejecuta las instrucciones que le damos. Entonces, pidámosle que muestre el resultado: `echo $?`.
 
-"¡Que te recontra!" Bueno, sí. [El amigo Bourne] (http://en.wikipedia.org/wiki/Stephen_R._Bourne) había faltado a la clase de nombres descriptivos. `echo` es un comando de las consolas que imprime en pantalla[^1] lo que sea que le pasemos por parámetro. Por ejemplo, `echo Hola mundo` imprime `Hola mundo`. `bash` (el lenguaje que interpreta nuestra consola) posee variables, y para dereferenciarlas (leerlas) hay que anteponerle un `$` al nombre de la variable. Por ejemplo (`#` es el caracter de comentario):
+"¡Que te recontra!" Bueno, sí. [El amigo Bourne](http://en.wikipedia.org/wiki/Stephen_R._Bourne) había faltado a la clase de nombres descriptivos. `echo` es un comando de las consolas que imprime en pantalla[^1] lo que sea que le pasemos por parámetro. Por ejemplo, `echo Hola mundo` imprime `Hola mundo`. `bash` (el lenguaje que interpreta nuestra consola) posee variables, y para dereferenciarlas (leerlas) hay que anteponerle un `$` al nombre de la variable. Por ejemplo (`#` es el caracter de comentario):
 
 {% codeblock lang:bash %}
 $ nombre = "Mundo" # asigno "Mundo" a la variable nombre, creandola si no existe
