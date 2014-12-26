@@ -1,0 +1,42 @@
+---
+layout: post
+title: "int vs int32_t"
+date: 2014-12-26 20:05
+comments: true
+categories:
+---
+
+_Este post es un laburo en conjunto que hicimos con [Micaela Oriolo](http://github.com/micaelaoriolo). Kudos para ella :)_
+
+{% blockquote %}
+No entiendo qué pito tocan los uint32. ¿Cuándo hay que usarlos sí o sí?
+{% endblockquote %}
+
+En la vida real, todo puede explotar. Entre las miles de causas del típico “en casa compila”, se encuentra el uso (o no uso, mejor dicho) de los tipos de datos que especifican su tamaño. En este caso, vamos a hablar del tipo de dato `int`.<!--more-->
+
+La definición que el estándar de C da sobre el `int` es muy vaga:
+
+{% blockquote ISO/IEC 9899:TC3 http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf 6.2.5 - Types, p33 %}
+A ‘plain’ int object has the natural size suggested by the architecture of the execution environment (large enough to contain any value in the range INT_MIN to INT_MAX as defined in the header <limits.h>
+{% endblockquote %}
+
+Lo que nos importa ahora de esta definición es que dice que el `int` tiene el tamaño sugerido por la arquitectura del entorno de ejecución. Esto significa que, en arquitecturas de 32 bits, el `int` suele medir 32 bits, mientras que en arquitecturas de 64 bits el `int` puede medir 32 o 64 bits.
+
+A simple vista, esto puede parecer molesto, pero tiene sus razones, una de las cuales es que el hecho de que los datos estén _alineados a la palabra del procesador_ hace que las operaciones a nivel CPU sean más ágiles.
+
+Si en tu programa declarás todas las variables como `int32_t` y alguien compila ese programa para correr en un procesador de, por ejemplo, 16 bits, ese procesador no va a estar muy feliz, porque cada operación que haga con esos `int32_t` implica 2 lecturas, incluso si lo único que querías hacer con esa variable es un for de 1 a 10.
+
+_Entonces, ¿qué hago? ¿cuándo uso `int` y cuándo `int32_t`?_
+
+Si lo que querés guardar en tu variable es un número, entonces no va a haber ningún problema porque, justamente, por eso de que el dato está alineado, va a andar bien y rápido. Pero, hay veces en las que necesitás tener garantía del tamaño. Por ejemplo, cuando se trata de direcciones de memoria, pero también cuando querés serializar datos para mandarlos de una computadora a la otra. Si serializás el `int` copiando `sizeof(int)` bytes y mandándolos, no sabés cuánto es `sizeof(int)` en la otra máquina. Si no coinciden, ¡pum!.
+
+Para _estos casos_ aparecen los tipos de datos que especifican su tamaño. Podemos distinguir dos enfoques distintos:
+
+* Los tipos de datos _nativos_ tienen un nombre muy declarativo, que te dice “yo soy un carácter, yo soy un número chiquito, yo soy un número normal, yo soy un número grande”
+* Los tipos de datos que especifican su tamaño, están muy ligados a la implementación: “yo mido 16 bits, yo mido 32, yo mido 64”.
+
+_Todo muy lindo, pero... ¿cuál es la relación entre todo esto y el intervalo de números que soporta cada tipo de dato?_
+
+Bueno, siempre depende del tamaño del tipo de dato. Sin importar cómo esté declarada la variable, si mide 32 bits se va a bancar 2^32 números distintos. De ahí que a veces puede pasar que el `long int` mida lo mismo que el `int`, y entonces el `long int` puede soportar el mismo intervalo que el `int`... lo cual no es muy feliz, pero _es lo que hay_.
+
+Una buena práctica de programación es asegurar la portabilidad de tu programa, es decir, que sea lo más independiente de la arquitectura posible, para que pueda correrse en muchas máquinas distintas. Entonces, no sería una mala idea poner en práctica el criterio y empezar a decidir cuándo sería conveniente usar `int` o cuándo es mejor `int32_t` (a.k.a. “Acá pongo `int32_t` porque sí.”)
