@@ -212,6 +212,10 @@ Sí, bueno, no... Son softlinks, pero leé de nuevo lo que puse: FAT no soporta 
 
 En Unix/ext, el propio sistema de archivos se encarga de resolver el enlace al abrir un softlink, por lo que siempre vemos el contenido del destino[^14].
 
+## Links útiles
+
+* http://teaching.idallen.com/dat2330/04f/notes/links_and_inodes.html
+
 [^1]: Existen los enlaces ~~en FAT~~ en Windows, pero funcionan a otro nivel, me disgustan, me caen mal ~~, y voy a ignorarlos rotundamente~~ :)
 [^2]: Por defecto, `echo` imprime un salto de línea, y por eso el `\n` al final del contenido. Se puede evitar el `\n` final haciendo `echo -n`.
 [^3]: Sólo importa que sea dentro del mismo filesystem, ya veremos por qué.
@@ -226,4 +230,4 @@ En Unix/ext, el propio sistema de archivos se encarga de resolver el enlace al a
 [^12]: Y, obviamente, si usamos el programa `edit` desde la consola/CMD/DOS, peor todavía.
 [^13]: Hice recién la misma prueba en Windows 8.1, y funcionó del mismo modo, pero no se por qué siento que alguna vez me pasó distinto.
 [^14]: Entiendo que uno podría modificar una implementación de ext para que muestre el contenido de los enlaces en lugar de resolverlos, recompilarla, instalarla y montar un FS con esa implementación, pero sería _llevar las cosas bastante al límite_, y, obviamente, dejaría de ser ext (porque ya no cumple con la especificación de cómo abrir los enlaces, je).
-[^15]: Existen optimizaciones (llamadas _fast symlinks_) que permiten guardar la ruta directamente en el inodo (cuando entra) en lugar de reservar un bloque de datos únicamente para escribir un path cortito, pero esa diferencia no hace al concepto de symlink.
+[^15]: La enorme mayoría de las implementaciones de ext optimizan el uso de disco almacenando la ruta destino _en el inodo_ en lugar de en un bloque de datos aparte (escribiéndola en la zona reservada para los punteros a bloques de datos). De hecho, [la especificación de ext2 dice que ese es el modo de hacerlo](http://www.nongnu.org/ext2-doc/ext2.html#DEF-SYMBOLIC-LINKS) (digamos, no lo nombra como un opcional). De todos modos, esto es una optimización de espacio, y no hace diferencias importantes a la hora de entender el concepto del symlink.
