@@ -190,7 +190,29 @@ $
 
 That's it :)
 
-[^1]: Existen los enlaces en FAT, pero funcionan a otro nivel, me disgustan, me caen mal, y voy a ignorarlos rotundamente :)
+## Windows
+
+Ok, hablemos (un poco, medio de mala gana, y bastante desde el desconocimiento) de Windows.
+
+En FAT no existen la conceptos de soft ni hard links. NTFS los tiene.
+
+Lo que sí existe en Windows desde antes de NTFS son los viejos y conocidos accesos directos.
+
+¿Qué son los accesos directos?
+
+Bueno, son archivos que están guardados en el file system, y que cuando los abro en realidad me abren otros archivos a los que "apuntan".
+
+_¡ESO ES UN SOFTLINK! ¡AHHHHH IGNORANTE! ¡ME MENTISTE! ¡¡¿¿VISTE QUE SÍ EXISTÍAN??!! Te dije que este pibe era un talibán linuxero y que no puede contar objetivamente nada de Windows._
+
+Sí, bueno, no... Son softlinks, pero leé de nuevo lo que puse: FAT no soporta symlinks; Windows lo soporta.
+
+¿Y qué cambia? Bueno, cambia bastante. En Windows/FAT, los accesos directos los interpreta el shell (es decir, la interfaz de ventanitas que te deja hacer doble click sobre los archivos), y no el file system. Esto significa que, dependiendo de cómo interactúe cada aplicación con la API de Windows, al abrir un acceso directo podría leer el contenido del archivo destino o el del propio acceso directo. Tengo la sensación de que en las versiones nuevas[^11] de Windows hicieron algunos cambios para que esto no pase, pero, por ejemplo, uno puede darle doble click a un acceso directo a un txt en Windows XP para abrir el archivo destino en notepad[^13], pero si abrimos notepad y hacemos drag&drop del acceso directo vamos a ver un montón de chirimbolos horrendos que tienen codificada de algún modo extraño la ruta al destino[^12].
+
+![Abriendo accesos directos con notepado en Windows XP](/assets/shortcut-windows-xp.gif)
+
+En Unix/ext, el propio sistema de archivos se encarga de resolver el enlace al abrir un softlink, por lo que siempre vemos el contenido del destino[^14].
+
+[^1]: Existen los enlaces ~~en FAT~~ en Windows, pero funcionan a otro nivel, me disgustan, me caen mal ~~, y voy a ignorarlos rotundamente~~ :)
 [^2]: Por defecto, `echo` imprime un salto de línea, y por eso el `\n` al final del contenido. Se puede evitar el `\n` final haciendo `echo -n`.
 [^3]: Sólo importa que sea dentro del mismo filesystem, ya veremos por qué.
 [^4]: A esta altura ya te habrás imaginado que tiene bastante sentido aplicar algúna técnica de caché para las entradas de directorios, porque _se usan bastante seguido_, je :)
@@ -200,3 +222,7 @@ That's it :)
 [^8]: "softlink", "soft link", "enlace dinámico", "enlace _suave_", _you name it_
 [^9]: Lo de `-> miarchivo.txt` es información que agrega `ls` para ser _más usable_, pero esa información **no está guardada en la entrada de directorio**.
 [^10]: En general, trato de usar los comandos de UNIX más _cercanos_ a las llamadas al sistema. `ls` hace _muchas_ cosas, no existe una llamada al sistema `ls`, pero sí existe una llamada al sistema [readlink](http://linux.die.net/man/2/readlink) (o quizá no se llame así, pero cumple esa tarea específica).
+[^11]: Llamar "nuevas" a las que tienen menos de 15 años de antigüedad denota mi pasión por [gritarle a las nubes](http://i.imgur.com/91sn32Q.jpg?fb)
+[^12]: Y, obviamente, si usamos el programa `edit` desde la consola/CMD/DOS, peor todavía.
+[^13]: Hice recién la misma prueba en Windows 8.1, y funcionó del mismo modo, pero no se por qué siento que alguna vez me pasó distinto.
+[^14]: Entiendo que uno podría modificar una implementación de ext para que muestre el contenido de los enlaces en lugar de resolverlos, recompilarla, instalarla y montar un FS con esa implementación, pero sería _llevar las cosas bastante al límite_, y, obviamente, dejaría de ser ext (porque ya no cumple con la especificación de cómo abrir los enlaces, je).
