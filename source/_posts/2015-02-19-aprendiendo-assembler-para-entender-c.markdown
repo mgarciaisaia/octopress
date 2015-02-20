@@ -149,10 +149,193 @@ El resto de `main` es simplemente limpieza, llamado el _epílogo_ de la función
 
 Hasta ahora, usamos GDB para desensamblar un pequeño programa C, le pegamos un vistazo a cómo leer la sintaxis de assembler de AT&T, y hablamos un poco de los operandos de registros y direcciones de memoria. También usamos GDB para verificar dónde se almacenan nuestras variables locales en relación a `%rbp`. Ahora vamos a ver cómo usar nuestras nuevas habilidades para explicar cómo funcionan las variables locales estáticas.
 
-_(continuará...)_
+## Entendiendo las variables estáticas locales
+
+Las variables estáticas locales son una característica muy copada de C. En dos palabras, son variables locales que se inicializan una única vez y persisten sus valores a través de las sucesivas llamadas a la función en que fueron definidas. Un caso de uso bastante simple de las variables estáticas locales es un generador _à la_ Python. Este ejemplo genera todos los números naturales hasta `INT_MAX`:
+
+{% codeblock lang:c static.c %}
+/* static.c */
+#include <stdio.h>
+int natural_generator()
+{
+  int a = 1;
+  static int b = -1;
+  b += 1;
+  return a + b;
+}
+
+int main()
+{
+  printf("%d\n", natural_generator());
+  printf("%d\n", natural_generator());
+  printf("%d\n", natural_generator());
+
+  return 0;
+}
+{% endcodeblock %}
+
+Cuando lo compilamos y ejecutamos, este programa imprime los primeros tres números naturales:
+
+{% codeblock lang:bash %}
+$ CFLAGS="-g -O0" make static
+cc -g -O0    static.c   -o static
+$ ./static
+1
+2
+3
+{% endcodeblock %}
+
+Pero, ¿cómo funciona esto? Para entender las estáticas locales, vamos a meternos en GDB y mirar el assembler. Saqué las direcciones que muestra GDB al desensamblado para que entre en la pantalla:
+
+{% codeblock lang:c-objdump %}
+$ gdb static
+(gdb) break natural_generator
+(gdb) run
+(gdb) disassemble
+Dump of assembler code for function natural_generator:
+push   %rbp
+mov    %rsp,%rbp
+movl   $0x1,-0x4(%rbp)
+mov    0x177(%rip),%eax        # 0x100001018 <natural_generator.b>
+add    $0x1,%eax
+mov    %eax,0x16c(%rip)        # 0x100001018 <natural_generator.b>
+mov    -0x4(%rbp),%eax
+add    0x163(%rip),%eax        # 0x100001018 <natural_generator.b>
+pop    %rbp
+retq
+End of assembler dump.
+{% endcodeblock %}
+
+Lo primero que necesitamos descubrir es en qué instrucción estamos. Podemos hacer eso examinando el "instruction pointer" (_puntero de instrucción_) o "program counter" (_contador de programa_). El instruction pointer es un registro que almacena la dirección de memoria de la próxima instrucción. En x86_64, ese registro es `%rip`. Podemos acceder al instruction pointer usando la variable `$rip`, o podemos usar `$pc`, la alternativa independiente de la plataforma:
+
+{% codeblock lang:c-objdump %}
+(gdb) x/i $pc
+0x100000e94 <natural_generator+4>:  movl   $0x1,-0x4(%rbp)
+{% endcodeblock %}
+
+El instruction pointer siempre contiene la dirección de la _próxima_ instrucción a ejecutar, lo que significa que la tercer instrucción aún no se ejecutó, pero está a punto.
+
+Como es bastante útil conocer la próxima instrucción, vamos a hacer que GDB nos muestre la próxima instrucción cada vez que frenamos el programa. A partir de GDB 7.0, podés ejecutar `set disassemble-next-line on`, que muestra todas las instrucciones que conforman la próxima instrucción fuente, pero estamos usando Mac OS X, que trae GDB 6.3, así que vamos a tener que recurrir al comando `display`. `display` es como `x`, sólo que evalúa la expresión cada vez que nuestro programa se detiene:
+
+{% codeblock lang:c-objdump %}
+(gdb) display/i $pc
+1: x/i $pc  0x100000e94 <natural_generator+4>:  movl   $0x1,-0x4(%rbp)
+{% endcodeblock %}
+
+Ahora GDB está listo para mostrarnos siempre la próxima instrucción a ejecutar antes del prompt.
+
+Ya pasamos el prólogo de la función, del que hablamos antes, así que vamos a empezar en la tercer instrucción. Esto corresponde a la primer línea de código que asigna 1 a `a`. En lugar de `next`, que nos mueve a la próxima instrucción fuente, vamos a usar `nexti`, que nos mueve a la próxima instrucción assembler. Después, vamos a examinar `%rbp - 0x4` para verificar nuestra hipótesis de que `a` se almacena en `%rbp - 0x4`.
+
+{% codeblock lang:c-objdump %}
+(gdb) nexti
+7           b += 1;
+1: x/i $pc  mov   0x177(%rip),%eax # 0x100001018 <natural_generator.b>
+(gdb) x $rbp - 0x4
+0x7fff5fbff78c: 0x00000001
+(gdb) x &a
+0x7fff5fbff78c: 0x00000001
+{% endcodeblock %}
+
+Son lo mismo, tal como esperábamos. La próxima instrucción es más interesante:
+
+{% codeblock lang:c-objdump %}
+mov    0x177(%rip),%eax        # 0x100001018 <natural_generator.b>
+{% endcodeblock %}
+
+Acá es donde esperaríamos encontrar la línea `static int b = -1;`, pero se ve substancialmente distinta de cualquier otra cosa que hayamos visto antes. Por empezar, no hay referencia al stack frame, donde esperaríamos encontrar las variables locales. ¡Ni siquiera hay un `-0x1`! En cambio, tenemos una instrucción que carga `0x100001018`, ubicada en algún lugar después del instruction pointer, a `%eax`. GDB nos da un comentario bastante útil con el resultado del cálculo del operando en memoria, y nos da una pista diciéndonos que `natural_generator.b` se encuentra en esa dirección. Corramos esta instrucción y veamos qué pasa:
+
+{% codeblock lang:c-objdump %}
+(gdb) nexti
+(gdb) p $rax
+$3 = 4294967295
+(gdb) p/x $rax
+$5 = 0xffffffff
+{% endcodeblock %}
+
+Por más que el desensamblado muestre `%eax` como destino, nosotros imprimimos `$rax`, porque GDB sólo nos provee variables para los registros completos.
+
+En este momento necesitamos recordar que, mientras que las variables tienen tipos que especifican si son signadas o no, los registros no, por lo que GDB imprime el valor de `%rax` sin signo. Probemos de nuevo, casteando `%rax` a un `int` signado:
+
+{% codeblock lang:c-objdump %}
+(gdb) p (int)$rax
+$11 = -1
+{% endcodeblock %}
+
+Parece que encontramos a `b`. Podemos re-chequear esto usando el comando `x`:
+
+{% codeblock lang:c-objdump %}
+(gdb) x/d 0x100001018
+0x100001018 <natural_generator.b>:  -1
+(gdb) x/d &b
+0x100001018 <natural_generator.b>:  -1
+{% endcodeblock %}
+
+Entonces, no es sólo que `b` está en una dirección de memoria baja, fuera del stack, si no que además se la inicializa a -1 antes de que se llame a `natural_generator`. De hecho, incluso si desensamblaras el programa completo, no encontrarías ningún código que setteara `b` a -1. Esto ocurre porque el valor de `b` se hardcodea en otra sección del ejecutable `sample`, y el loader del sistema operativo lo carga en memoria junto con todo el código de máquina cuando se lanza el proceso[^process_launch].
+
+Después de todo esto, las cosas empiezan a tener más sentido. Tras almacenar `b` en `%eax`, pasamos a la próxima instrucción fuente, en la que incrementamos `b`. Esto se corresponde a las próximas dos instrucciones:
+
+{% codeblock lang:c-objdump %}
+add    $0x1,%eax
+mov    %eax,0x16c(%rip)        # 0x100001018 <natural_generator.b>
+{% endcodeblock %}
+
+Acá le agregamos (`add`) 1 a `%eax`, y almacenamos el resultado en la memoria. Corramos estas instrucciones y verifiquemos el resultado:
+
+{% codeblock lang:c-objdump %}
+(gdb) nexti 2
+(gdb) x/d &b
+0x100001018 <natural_generator.b>:  0
+(gdb) p (int)$rax
+$15 = 0
+{% endcodeblock %}
+
+Las próximas dos instrucciones nos preparan para devolver `a + b`:
+
+{% codeblock lang:c-objdump %}
+mov    -0x4(%rbp),%eax
+add    0x163(%rip),%eax        # 0x100001018 <natural_generator.b>
+{% endcodeblock %}
+
+Acá cargamos `a` en `%eax`, y luego le sumamos `b`. En este punto, esperaríamos que `%eax` valga 1. Verifiquemos:
+
+{% codeblock lang:c-objdump %}
+(gdb) nexti 2
+(gdb) p $rax
+$16 = 1
+{% endcodeblock %}
+
+Se usa `%eax` para almacenar el valor de retorno de `natural_generator`, así que estamos listos para el epílogo, que limpia el stack y retorna:
+
+{% codeblock lang:c-objdump %}
+pop    %rbp
+retq
+{% endcodeblock %}
+
+Ahora que entendemos cómo se inicializa `b`, veamos qué pasa cuando corremos `natural_generator` otra vez:
+
+{% codeblock lang:c-objdump %}
+(gdb) continue
+Continuing.
+1
+
+Breakpoint 1, natural_generator () at static.c:5
+5           int a = 1;
+1: x/i $pc  0x100000e94 <natural_generator+4>:  movl   $0x1,-0x4(%rbp)
+(gdb) x &b
+0x100001018 <natural_generator.b>:  0
+{% endcodeblock %}
+
+Como `b` no está almacenada en el stack junto con las otras variables locales, al volver a llamar a `natural_generator` sigue valiendo 0. No importa cuántas veces llamemos a nuestro generador, `b` siempre va a retener su valor. Esto ocurre porque está almacenada fuera del stack, y es inicializada cuando el loader mueve el programa a memoria en lugar de por nuestor código máquina.
+
+## Conclusión
+
+Comenzamos viendo cómo leer assembler y cómo desensamblar un programa con GDB. Luego, vimos cómo funcionan las variables estáticas locales, cosa que no podríamos haber hecho sin desensamblar nuestro ejecutable.
+
+Pasamos mucho tiempo alternando entre leer instrucciones assembler y verificando nuestras hipótesis en GDB. Puede parecer repetitivo, pero hay una razón muy importante para hacerlo así: la mejor manera de aprender algo abstracto es volverlo más concreto, y una de las mejores maneras de hacer más concreto a algo es usando herramientas que te dejen sacarle capas de abstracción. La mejor manera de aprender estas herramientas es forzándote a usarlas hasta que te sean naturales.
 
 [^compila_mac]: **NdeT**: Lo de que es en OS X no es porque me haga el careta usando Mac, si no porque el post original estaba así, y todavía no tengo la sopa/tiempo/ganas de hacer todo lo mismo pero en Linux con `gcc` :)
 [^using_make]: Tal vez notes que usamos Make para buildear `simple.c` sin un makefile. Podemos hacerlo porque Make tiene reglas implícitas para buildear ejecutables a partir de archivos C. Podés encontrar más información sobre esas reglas en el [manual de Make](http://www.gnu.org/software/make/manual/make.html#Implicit-Rules)
 [^sintaxis_assembler]: También podés hacer que GDB muestre la sintaxis de Intel, usada por NASM, MASM y otros assemblers, pero eso se va del alcance del post.
 [^humanamente_legible]: **NdeT**: Con _humanamente legible_ quiere decir _**Joaco**-humanamente legible_, pero bue...
 [^ancho_registros]: Los procesadores con sets de instrucciones SIMD (como MMX y SSE para x86, y AltiVec para PowerPC) suelen tener algunos registros que son más anchos que la arquitectura de la CPU.
+[^process_launch]: Reservamos para un post futuro la discusión sobre formatos de objeto, loaders y linkers.
