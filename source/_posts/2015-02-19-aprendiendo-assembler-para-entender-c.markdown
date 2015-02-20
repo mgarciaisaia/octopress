@@ -11,7 +11,7 @@ Cualquier error o sugerencia sobre la traducción es más que bienvenida._
 
 La última vez, [Alan](https://github.com/happy4crazy) mostró cómo usar [GDB como una herramienta para aprender C](https://www.hackerschool.com/blog/5-learning-c-with-gdb). Hoy quiero ir un paso más allá y usar GDB para ayudarnos a entender assembler, también.
 
-Las capas de abstracción son grandes herramientas para construir cosas, pero a veces pueden interponerse en el aprendizaje. Mi objetivo en este post es convencerte de que para aprender C rigurosamente, también necesitamos entender el código assembler que nuestro compilador de C genera. Voy a hacer esto mostrándote cómo desensamblar y leer un programa simple con GDB, y después vamos a usar GDB y nuestro conocimiento de assembler para entender cómo funcionan las variables locales estáticas en C.
+Las capas de abstracción son grandes herramientas para construir cosas, pero a veces pueden interponerse en el aprendizaje. Mi objetivo en este post es convencerte de que para aprender C rigurosamente, también necesitamos entender el código assembler que nuestro compilador de C genera. Voy a hacer esto mostrándote cómo desensamblar y leer un programa simple con GDB, y después vamos a usar GDB y nuestro conocimiento de assembler para entender cómo funcionan las variables locales estáticas en C.<!--more-->
 
 _Nota: todo el código en este post fue compilado en una CPU x86_64 corriendo Mac OS X 10.8.1, usando Clang 4.0 con las optimizaciones deshabilitadas (`-O0`)[^compila_mac]._
 
@@ -151,8 +151,8 @@ Hasta ahora, usamos GDB para desensamblar un pequeño programa C, le pegamos un 
 
 _(continuará...)_
 
-[^compila_mac]: Lo de que es en OS X no es porque me haga el careta usando Mac, si no porque el post original estaba así, y todavía no tengo la sopa/tiempo/ganas de hacer todo lo mismo pero en Linux con `gcc` :)
+[^compila_mac]: **NdeT**: Lo de que es en OS X no es porque me haga el careta usando Mac, si no porque el post original estaba así, y todavía no tengo la sopa/tiempo/ganas de hacer todo lo mismo pero en Linux con `gcc` :)
 [^using_make]: Tal vez notes que usamos Make para buildear `simple.c` sin un makefile. Podemos hacerlo porque Make tiene reglas implícitas para buildear ejecutables a partir de archivos C. Podés encontrar más información sobre esas reglas en el [manual de Make](http://www.gnu.org/software/make/manual/make.html#Implicit-Rules)
 [^sintaxis_assembler]: También podés hacer que GDB muestre la sintaxis de Intel, usada por NASM, MASM y otros assemblers, pero eso se va del alcance del post.
-[^humanamente_legible]: Con _humanamente legible_ quiere decir _**Joaco**-humanamente legible_, pero bue...
+[^humanamente_legible]: **NdeT**: Con _humanamente legible_ quiere decir _**Joaco**-humanamente legible_, pero bue...
 [^ancho_registros]: Los procesadores con sets de instrucciones SIMD (como MMX y SSE para x86, y AltiVec para PowerPC) suelen tener algunos registros que son más anchos que la arquitectura de la CPU.
