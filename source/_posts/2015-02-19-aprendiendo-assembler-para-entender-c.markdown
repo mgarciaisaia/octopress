@@ -6,7 +6,8 @@ comments: true
 categories:
 ---
 
-_Este post es mi traducción del post [Understanding C by learning assembly](https://www.hackerschool.com/blog/7-understanding-c-by-learning-assembly) de [David Albert](https://github.com/davidbalbert). Cualquier error o sugerencia sobre la traducción es bienvenida, y si querés que haga de intermediario para sugerirle cambios de contenido a él, también vale._
+_Este post es mi traducción del post [Understanding C by learning assembly](https://www.hackerschool.com/blog/7-understanding-c-by-learning-assembly) de [David Albert](https://github.com/davidbalbert), del blog de [Hacker School](https://www.hackerschool.com/). La traducción fue hecha con el permiso de Hacker School, y obviamente todos los derechos sobre el post original les pertenecen a ellos.
+Cualquier error o sugerencia sobre la traducción es más que bienvenida._
 
 La última vez, [Alan](https://github.com/happy4crazy) mostró cómo usar [GDB como una herramienta para aprender C](https://www.hackerschool.com/blog/5-learning-c-with-gdb). Hoy quiero ir un paso más allá y usar GDB para ayudarnos a entender assembler, también.
 
