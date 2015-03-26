@@ -9,7 +9,7 @@ categories:
 _Este post es mi traducción del post [Understanding C by learning assembly](https://www.hackerschool.com/blog/7-understanding-c-by-learning-assembly) de [David Albert](https://github.com/davidbalbert), del blog de [Hacker School](https://www.hackerschool.com/). La traducción fue hecha con el permiso de Hacker School, y obviamente todos los derechos sobre el post original les pertenecen a ellos.
 Cualquier error o sugerencia sobre la traducción es más que bienvenida._
 
-La última vez, [Alan](https://github.com/happy4crazy) mostró cómo usar [GDB como una herramienta para aprender C](https://www.hackerschool.com/blog/5-learning-c-with-gdb). Hoy quiero ir un paso más allá y usar GDB para ayudarnos a entender assembler, también.
+La última vez, [Alan](https://github.com/happy4crazy) mostró cómo usar [GDB como una herramienta para aprender C](/blog/2015/02/24/aprendiendo-c-con-gdb/)[^gdb-post-ingles]. Hoy quiero ir un paso más allá y usar GDB para ayudarnos a entender assembler, también.
 
 Las capas de abstracción son grandes herramientas para construir cosas, pero a veces pueden interponerse en el aprendizaje. Mi objetivo en este post es convencerte de que para aprender C rigurosamente, también necesitamos entender el código assembler que nuestro compilador de C genera. Voy a hacer esto mostrándote cómo desensamblar y leer un programa simple con GDB, y después vamos a usar GDB y nuestro conocimiento de assembler para entender cómo funcionan las variables locales estáticas en C.<!--more-->
 
@@ -333,6 +333,7 @@ Comenzamos viendo cómo leer assembler y cómo desensamblar un programa con GDB.
 
 Pasamos mucho tiempo alternando entre leer instrucciones assembler y verificando nuestras hipótesis en GDB. Puede parecer repetitivo, pero hay una razón muy importante para hacerlo así: la mejor manera de aprender algo abstracto es volverlo más concreto, y una de las mejores maneras de hacer más concreto a algo es usando herramientas que te dejen sacarle capas de abstracción. La mejor manera de aprender estas herramientas es forzándote a usarlas hasta que te sean naturales.
 
+[^gdb-post-ingles]: El post original, en inglés, está [en HackerSchool](https://www.hackerschool.com/blog/5-learning-c-with-gdb)
 [^compila_mac]: **NdeT**: Lo de que es en OS X no es porque me haga el careta usando Mac, si no porque el post original estaba así, y todavía no tengo la sopa/tiempo/ganas de hacer todo lo mismo pero en Linux con `gcc` :)
 [^using_make]: Tal vez notes que usamos Make para buildear `simple.c` sin un makefile. Podemos hacerlo porque Make tiene reglas implícitas para buildear ejecutables a partir de archivos C. Podés encontrar más información sobre esas reglas en el [manual de Make](http://www.gnu.org/software/make/manual/make.html#Implicit-Rules)
 [^sintaxis_assembler]: También podés hacer que GDB muestre la sintaxis de Intel, usada por NASM, MASM y otros assemblers, pero eso se va del alcance del post.
