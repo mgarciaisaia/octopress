@@ -5,7 +5,7 @@ date: 2014-03-20 19:33
 comments: true
 categories:
 ---
-Si alguna vez editaron un script UNIX, seguramente habrán visto que arrancan de manera similar: `#!/bin/sh`. Por algún motivo, esa línea mágica se llama [Shebang](0)[^1].
+Si alguna vez editaron un script UNIX, seguramente habrán visto que arrancan de manera similar: `#!/bin/sh`. Por algún motivo, esa línea mágica se llama [Shebang][0][^1].
 
 {% codeblock mi_script lang:bash %}
 #!/bin/sh
